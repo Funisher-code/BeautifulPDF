@@ -3,7 +3,7 @@ Using image DPI corrections, Pandoc and Eisvogel to create beautiful Markdown PD
 
 ## Usage
 ```bash
-./beautifulPDF.sh -i someMarkdownFile.md -o beautiful.pdf
+./beautifulPDF.sh -i someMarkdownFile.md -o beautiful.pdf -a '--toc'
 ```
 
 ## Example Yaml Header
