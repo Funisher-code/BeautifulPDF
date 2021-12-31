@@ -7,23 +7,7 @@
 
 dpi=254
 tmpDir="tmpBeautifulPDF"
-
-#--------------------------------------------------------------------
-printColored 1 "# prerequesite: proper markdown links, no wiki links"
-printColored 2 "# parse flags"
-
-while getopts i:o:a: flag
-do
-    case "${flag}" in
-        i) inFile=${OPTARG};;
-        o) outFile=${OPTARG};;
-        a) additionalArgs=${OPTARG};;
-    esac
-done
-
-printColored 3 "input File: $inFile"
-printColored 3 "output PDF: $outFile"
-printColored 3 "additional arguments for pandoc: $additionalArgs"
+tocName="Table of Contents"
 
 #--------------------------------------------------------------------
 # Functions
@@ -60,7 +44,7 @@ extractImagePaths () {
 	cat $tmpDir/imageLines.txt | cut -d "(" -f 2 | cut -d ")" -f 1 | cut -d "?" -f 1 | cut -d ":" -f 2 > $tmpDir/imageFullPath.txt
 	echo 'cat $tmpDir/imageLines.txt | cut -d "(" -f 2 | cut -d ")" -f 1 | cut -d "?" -f 1 > $tmpDir/imageSearch.txt'
 	cat $tmpDir/imageLines.txt | cut -d "(" -f 2 | cut -d ")" -f 1 | cut -d "?" -f 1 > $tmpDir/imageSearch.txt
-	echo 'cat $tmpDir/imageLines.txt | cut -d "(" -f 2 | cut -d ")" -f 1 | cut -d "?" -f 1 | cut -d ":" -f 2 | sed 's|.*/||' > $tmpDir/imageName.txt'
+	echo 'cat $tmpDir/imageLines.txt | cut -d "(" -f 2 | cut -d ")" -f 1 | cut -d "?" -f 1 | cut -d ":" -f 2 | sed "s|.*/||" > $tmpDir/imageName.txt'
 	cat $tmpDir/imageLines.txt | cut -d "(" -f 2 | cut -d ")" -f 1 | cut -d "?" -f 1 | cut -d ":" -f 2 | sed 's|.*/||' > $tmpDir/imageName.txt
 }
 
@@ -97,14 +81,30 @@ function replaceImageLinks () {
 
 function createPandocPDF () {
 	cd "$tmpDir"
-	echo "pandoc -o "$outFile" --from markdown --template eisvogel --listings --number-sections "$tmpDir/$inFile""
-	pandoc -o "../$outFile" --from markdown --template eisvogel --listings --number-sections "$inFile"
+	echo "pandoc -o "$outFile" --from markdown --template eisvogel --listings --number-sections $additionalArgs $tmpDir/$inFile"
+	pandoc -o "../$outFile" --from markdown --template eisvogel --listings --number-sections  -V toc-title:"$tocName" $additionalArgs "$inFile"
 	cd ..
 }
 
 #--------------------------------------------------------------------
 # Call Functions
 #--------------------------------------------------------------------
+printColored 1 "# prerequesite: proper markdown links, no wiki links"
+printColored 2 "# parse flags"
+
+while getopts i:o:a: flag
+do
+    case "${flag}" in
+        i) inFile=${OPTARG};;
+        o) outFile=${OPTARG};;
+        a) additionalArgs=${OPTARG};;
+    esac
+done
+
+printColored 3 "input File: $inFile"
+printColored 3 "output PDF: $outFile"
+printColored 3 "additional arguments for pandoc: $additionalArgs"
+
 printColored 2 "# create temporary folder and copy markdown file there"
 initTmpFolder
 
