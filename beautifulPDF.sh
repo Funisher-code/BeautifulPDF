@@ -9,12 +9,17 @@ dpi=254
 tmpDir="tmpBeautifulPDF"
 tocName="Table of Contents"
 debugMode=false
+colorMode=false
 
 #--------------------------------------------------------------------
 # Functions
 #--------------------------------------------------------------------
 printColored () {
-	echo "$(tput setaf $1)$2$(tput sgr0)"
+	if [ "$colorMode" = true ] ; then
+		echo "$(tput setaf $1)$2$(tput sgr0)"
+	else
+		echo $2
+	fi
 }
 
 initTmpFolder () {
