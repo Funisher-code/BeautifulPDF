@@ -8,23 +8,13 @@
 dpi=254
 tmpDir="tmpBeautifulPDF"
 tocName="Table of Contents"
+debugMode=false
 
 #--------------------------------------------------------------------
 # Functions
 #--------------------------------------------------------------------
 printColored () {
 	echo "$(tput setaf $1)$2$(tput sgr0)"
-}
-
-readFlags () {
-	while getopts i:o:a: flag
-	do
-	    case "${flag}" in
-	        i) global inFile=${OPTARG};;
-	        o) global outFile=${OPTARG};;
-	        a) global additionalArgs=${OPTARG};;
-	    esac
-	done
 }
 
 initTmpFolder () {
@@ -75,15 +65,14 @@ function replaceImageLinks () {
 	for (( j=0; j<length; j++ ));
 	do
 		echo "> sed -i '.original' -e 's|${strSearch[$j]}|${strReplace[$j]}|g' $tmpDir/$inFile"
-		sed -i '.original' -e "s|${strSearch[$j]}|${strReplace[$j]}|g" $tmpDir/$inFile
+		sed -i '.original' -e "s|${strSearch[$j]}|$tmpDir/${strReplace[$j]}|g" $tmpDir/$inFile
 	done	
 }
 
 function createPandocPDF () {
-	cd "$tmpDir"
+	#cd "$tmpDir"
 	echo "pandoc -o "$outFile" --from markdown --template eisvogel --listings --number-sections $additionalArgs $tmpDir/$inFile"
-	pandoc -o "../$outFile" --from markdown --template eisvogel --listings --number-sections  -V toc-title:"$tocName" $additionalArgs "$inFile"
-	cd ..
+	pandoc -o "$outFile" --from markdown --template eisvogel --listings --number-sections  -V toc-title:"$tocName" $additionalArgs "$tmpDir/$inFile"
 }
 
 #--------------------------------------------------------------------
@@ -92,18 +81,20 @@ function createPandocPDF () {
 printColored 1 "# prerequesite: proper markdown links, no wiki links"
 printColored 2 "# parse flags"
 
-while getopts i:o:a: flag
+while getopts i:o:a:d: flag
 do
     case "${flag}" in
         i) inFile=${OPTARG};;
         o) outFile=${OPTARG};;
         a) additionalArgs=${OPTARG};;
+		d) debugMode=true;;
     esac
 done
 
 printColored 3 "input File: $inFile"
 printColored 3 "output PDF: $outFile"
 printColored 3 "additional arguments for pandoc: $additionalArgs"
+printColored 3 "debugMode: $debugMode"
 
 printColored 2 "# create temporary folder and copy markdown file there"
 initTmpFolder
@@ -127,5 +118,7 @@ printColored 2 "# use eisvogel template to create pdf"
 createPandocPDF
 
 printColored 1 "# check PDF: $outFile"
-read -p "Press any key to delete temporary files... " -n1 -s
+if [ "$debugMode" = true ] ; then 
+	read -p "Press any key to delete temporary files... " -n1 -s
+fi
 rm -r $tmpDir
